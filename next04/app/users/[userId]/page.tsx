@@ -5,6 +5,10 @@ import { Suspense } from 'react'
 import UserPosts from './components/UserPost'
 import type { Metadata } from 'next'
 import getAllUsers from '@/lib/getAllUsers'
+import {notFound} from 'next/navigation'
+
+
+
 type Params = {
     params: {
         userId: string
@@ -14,6 +18,12 @@ type Params = {
 export async function generateMetadata({params: {userId}}: Params): Promise<Metadata> {
     const userData: Promise<User> = getUser(userId)
     const user:User = await userData
+
+    if (!user?.name) {
+        return {
+            title: 'User not found',
+        }
+    }
     return {
         title: `${user.name}'s Page`,
         description: `This is the page of ${user.name}`
@@ -28,12 +38,13 @@ export default async function UserPage({params: {userId}}: Params) {
     
     const user = await userData
    
+    if (!user?.name) notFound()
   return (
     <>
     <h2 className=' text-4xl font-bold'>{user.name}</h2>
     <br />
     <Suspense fallback={<h2>Loading...</h2>}>
-    
+    {/* @ts-expect-error Server Component */}
     <UserPosts promise={userPostsData}/>
     </Suspense>
     
